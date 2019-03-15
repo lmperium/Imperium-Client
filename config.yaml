@@ -1,0 +1,5 @@
+booted: false
+
+exchanges:
+  - work
+  - heartbeat
