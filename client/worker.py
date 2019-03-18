@@ -1,11 +1,12 @@
+import asyncio
 import logging
-import yaml
 import os
+import yaml
 
-from helper import get_system_information
+from modules.system_information import win_system_information as sys_info
 
 
-def main():
+async def main():
     # Load configuration file as a python dictionary
     abs_path = os.path.dirname(os.path.dirname(os.getcwd()))
     file_path = abs_path + '\\config.yaml'
@@ -16,10 +17,22 @@ def main():
     logger.info('Loaded configuration file.')
 
     if not config['booted']:
-        # Register worker with the API.
         # Retrieve system information and send it to api
-        system_information = get_system_information()
+        win_info = sys_info.WindowsSystemInformation()
+
+        init_info = dict()
+        system_info = win_info.get_system_information()
+
+        # Prepare payload
+        init_info['hostname'] = system_info['node']
+        init_info['startup_info'] = system_info
+
+        # Send init_info to api and register worker
+
+        logger.info(init_info)
+
         logger.info('Retrieved system information')
+        # Register worker with the API.
     else:
         logger.info('Has been booted')
 
@@ -29,4 +42,4 @@ if __name__ == '__main__':
     logging.basicConfig(format=LOG_FORMAT, level=logging.INFO)
     logger = logging.getLogger(__name__)
 
-    main()
+    asyncio.run(main(), debug=True)
