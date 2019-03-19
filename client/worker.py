@@ -5,9 +5,10 @@ import os
 import yaml
 
 from comms.HTTPWorker import HTTPWorker
+from consumer.consumer import Consumer
 
 
-async def main():
+async def main(event_loop):
     # Load configuration file as a python dictionary
     abs_path = os.path.dirname(os.getcwd())
     file_path = abs_path + '\\config.yaml'
@@ -39,6 +40,7 @@ async def main():
         with open(file_path) as stream:
             config = yaml.safe_load(stream)
             config['target_queue'] = target_queue['target_queue']
+            config['booted'] = True
 
         with open(file_path, 'w') as stream:
             yaml.dump(config, stream)
@@ -47,10 +49,25 @@ async def main():
     else:
         logger.info('Has been booted')
 
+    with open(file_path) as f:
+        config = yaml.safe_load(f)
+
+    consumer = Consumer(
+        amqp_url=config['amqp_url'],
+        queue_name=config['target_queue'],
+        loop=event_loop
+    )
+    return await consumer.run()
 
 if __name__ == '__main__':
     LOG_FORMAT = '%(levelname)s :: %(asctime)s :: %(funcName)s :: %(message)s'
     logging.basicConfig(format=LOG_FORMAT, level=logging.INFO)
     logger = logging.getLogger(__name__)
 
-    asyncio.run(main())
+    loop = asyncio.get_event_loop()
+    connection = loop.run_until_complete(main(loop))
+
+    try:
+        loop.run_forever()
+    finally:
+        loop.run_until_complete(connection.close())
