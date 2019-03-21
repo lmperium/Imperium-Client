@@ -24,8 +24,19 @@ class HTTPWorker:
 
         return response
 
-    def upload_results(self):
-        pass
+    async def upload_results(self, command_id, payload):
 
-    def respond_heartbeat(self):
+        url = self.base_url + 'results'
+
+        payload['command_id'] = command_id
+        data = json.dumps(payload)
+
+        async with aiohttp.ClientSession() as session:
+            async with session.put(url=url, data=data) as resp:
+                logger.info('Sending results to api.')
+                logger.info(resp.status)
+                response = await resp.json()
+                logger.info(response)
+
+    async def respond_heartbeat(self):
         pass
