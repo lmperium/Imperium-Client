@@ -4,8 +4,8 @@ import modules.system_information.win_system_information as sys_info
 import os
 import yaml
 
-from comms.HTTPWorker import HTTPWorker
-from consumer.consumer import Consumer
+from client.comms.HTTPWorker import HTTPWorker
+from client.consumer.consumer import Consumer
 
 
 async def main(event_loop):

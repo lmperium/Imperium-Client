@@ -1,6 +1,7 @@
 import aio_pika
-import asyncio
 import logging
+
+from client.commands import command
 
 logger = logging.getLogger(__name__)
 
@@ -15,10 +16,11 @@ class Consumer:
         self._loop = loop
 
     @staticmethod
-    async def _on_message(message: aio_pika.IncomingMessage):
+    async def _on_message(self, message: aio_pika.IncomingMessage):
         async with message.process():
-            logger.info(message.body)
-            await asyncio.sleep(1)
+            tasks = command.CommandParser().parse(message.body)
+            logger.info(tasks)
+            await command.CommandHandler.run_command(tasks)
 
     async def run(self):
         connection = await aio_pika.connect_robust(
