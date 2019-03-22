@@ -16,7 +16,7 @@ class Consumer:
         self._loop = loop
 
     @staticmethod
-    async def _on_message(self, message: aio_pika.IncomingMessage):
+    async def _on_message(message: aio_pika.IncomingMessage):
         async with message.process():
             tasks = command.CommandParser().parse(message.body)
             logger.info(tasks)
