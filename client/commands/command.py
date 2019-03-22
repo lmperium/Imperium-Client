@@ -5,6 +5,7 @@ import logging
 
 from client.comms.HTTPWorker import HTTPWorker
 from client.modules.file import file_search
+from client.modules.process import process
 
 """
 Command Format for File module:
@@ -77,6 +78,8 @@ class CommandHandler:
 
         loop = asyncio.get_event_loop()
 
+        http_worker = HTTPWorker()
+
         for cmd in tasks:
             if cmd.is_command('file'):
                 logger.info(cmd.parameters['path'])
@@ -87,10 +90,12 @@ class CommandHandler:
                         cmd.file_target, cmd.parameters
                     )
                 logger.info(results)
-                # if results:
-                #     await HTTPWorker.upload_results(cmd.cmd_id, results)
+                if results:
+                    await http_worker.upload_results(command_id=cmd.cmd_id, payload=results)
             elif cmd.is_command('process'):
-                pass
+                logger.info(f'Process module called with the following parameters: {cmd.parameters}')
+                results = await process.get_active_processes()
+                await http_worker.upload_results(command_id=cmd.cmd_id, payload=results)
             elif cmd.is_command('netstat'):
                 pass
             elif cmd.is_command('registry'):
