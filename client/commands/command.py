@@ -35,11 +35,10 @@ logger = logging.getLogger(__name__)
 
 class Command:
 
-    def __init__(self, command_id, module, parameters, file_target=None):
-        self.command_id = command_id
-        self.module = module
-        self.parameters = parameters
-        self.file_target = file_target
+    command_id = None
+    module = None
+    parameters = None
+    file_target = None
 
     def is_command(self, module):
         return self.module == module
@@ -73,17 +72,18 @@ class CommandHandler:
                     )
                 logger.info(results)
                 if results:
-                    await http_worker.upload_results(command_id=cmd.cmd_id, payload=results)
+                    await http_worker.upload_results(command_id=cmd.command_id, payload=results)
             elif cmd.is_command('process'):
                 logger.info(f'Process module called with the following parameters: {cmd.parameters}')
-                results = process.get_active_processes()
-                await http_worker.upload_results(command_id=cmd.cmd_id, payload=results)
+                results = process.get_active_processes(cmd.parameters['targets'])
+                await http_worker.upload_results(command_id=cmd.command_id, payload=results)
             elif cmd.is_command('netstat'):
                 logger.info(f'Netstat module called with the following parameters: {cmd.parameters}')
-                results = netstat.network_connections()
-                await http_worker.upload_results(command_id=cmd.cmd_id, payload=results)
+                results = netstat.network_connections(cmd.parameters['targets'])
+                logger.info(results)
+                await http_worker.upload_results(command_id=cmd.command_id, payload=results)
             elif cmd.is_command('registry'):
-                print('Registry executed')
+                pass
             elif cmd.is_command('service'):
                 pass
 
@@ -94,7 +94,9 @@ def parse(message):
     commands = json.loads(message.decode('utf-8').replace('\'', '\"').replace('F', 'f'))
 
     for command in commands:
-        task_list.append(Command().from_dict(command))
+        cmd = Command()
+        cmd.from_dict(command)
+        task_list.append(cmd)
 
     return task_list
 

@@ -1,11 +1,18 @@
 import psutil
 
 
-def get_active_processes() -> dict:
+def get_active_processes(targets=None) -> dict:
     process_info = dict()
+
     for proc in psutil.process_iter(attrs=['username', 'exe', 'name', 'status']):
         try:
-            process_info[proc.pid] = proc.info
+            if targets:
+                if proc.info['name'] in targets:
+                    process_info[proc.pid] = proc.info
+                else:
+                    continue
+            else:
+                process_info[proc.pid] = process_info
         except psutil.NoSuchProcess:
             pass
 
