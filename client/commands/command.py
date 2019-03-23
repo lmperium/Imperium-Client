@@ -35,8 +35,8 @@ logger = logging.getLogger(__name__)
 
 class Command:
 
-    def __init__(self, cmd_id, module, parameters, file_target=None):
-        self.cmd_id = cmd_id
+    def __init__(self, command_id, module, parameters, file_target=None):
+        self.command_id = command_id
         self.module = module
         self.parameters = parameters
         self.file_target = file_target
@@ -44,32 +44,13 @@ class Command:
     def is_command(self, module):
         return self.module == module
 
+    def from_dict(self, data):
+        for attribute in ['command_id', 'module', 'parameters']:
+            if attribute in data:
+                setattr(self, attribute, data[attribute])
 
-class CommandParser:
-
-    command_id = None
-    module = None
-    file_target = None
-    parameters = None
-
-    def parse(self, message):
-
-        task_list = list()
-
-        commands = json.loads(message.decode('utf-8').replace('\'', '\"').replace('F', 'f'))
-
-        for command in commands:
-            self.command_id = command['command_id']
-            self.module = command['module']
-
-            if self.module == 'file':
-                self.file_target = command['file_target']
-
-            self.parameters = command['parameters']
-
-            task_list.append(Command(self.command_id, self.module, self.parameters, self.file_target))
-
-        return task_list
+        if 'file_target' in data and data['module'] == 'file':
+            setattr(self, 'file_target', data['file_target'])
 
 
 class CommandHandler:
@@ -107,4 +88,13 @@ class CommandHandler:
                 pass
 
 
+def parse(message):
+    task_list = list()
+
+    commands = json.loads(message.decode('utf-8').replace('\'', '\"').replace('F', 'f'))
+
+    for command in commands:
+        task_list.append(Command().from_dict(command))
+
+    return task_list
 

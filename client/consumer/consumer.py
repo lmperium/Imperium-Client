@@ -18,7 +18,7 @@ class Consumer:
     @staticmethod
     async def _on_message(message: aio_pika.IncomingMessage):
         async with message.process():
-            tasks = command.CommandParser().parse(message.body)
+            tasks = command.parse(message.body)
             logger.info(tasks)
             await command.CommandHandler.run_command(tasks)
 
