@@ -12,7 +12,7 @@ def get_active_processes(targets=None) -> dict:
                 else:
                     continue
             else:
-                process_info[proc.pid] = process_info
+                process_info[proc.pid] = proc.info
         except psutil.NoSuchProcess:
             pass
 
