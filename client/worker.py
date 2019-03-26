@@ -4,15 +4,16 @@ import modules.system_information.win_system_information as sys_info
 import os
 import yaml
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from client.comms.HTTPWorker import HTTPWorker
 from client.consumer.consumer import Consumer
 
+# Load configuration file as a python dictionary
+abs_path = os.path.dirname(os.getcwd())
+file_path = abs_path + '\\config.yaml'
 
-async def main(event_loop):
-    # Load configuration file as a python dictionary
-    abs_path = os.path.dirname(os.getcwd())
-    file_path = abs_path + '\\config.yaml'
 
+async def main(event_loop, scheduler):
     with open(file_path, 'r') as stream:
         config = yaml.safe_load(stream)
 
@@ -52,6 +53,9 @@ async def main(event_loop):
     with open(file_path) as f:
         config = yaml.safe_load(f)
 
+    scheduler.add_job(HTTPWorker().send_heartbeat, 'interval', [config['target_queue']], minutes=10)
+    scheduler.start()
+
     consumer = Consumer(
         amqp_url=config['amqp_url'],
         queue_name=config['target_queue'],
@@ -64,8 +68,10 @@ if __name__ == '__main__':
     logging.basicConfig(format=LOG_FORMAT, level=logging.INFO)
     logger = logging.getLogger(__name__)
 
+    scheduler = AsyncIOScheduler()
+
     loop = asyncio.get_event_loop()
-    connection = loop.run_until_complete(main(loop))
+    connection = loop.run_until_complete(main(loop, scheduler))
 
     try:
         loop.run_forever()
