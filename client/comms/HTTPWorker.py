@@ -16,8 +16,10 @@ class HTTPWorker:
 
         data = json.dumps(payload)
 
+        headers = {'content-type': 'application/json'}
+
         async with aiohttp.ClientSession() as session:
-            async with session.post(url=url, data=data) as resp:
+            async with session.post(url=url, data=data, headers=headers) as resp:
                 logger.info(resp.status)
                 response = await resp.json()
                 logger.info(response)
@@ -30,12 +32,26 @@ class HTTPWorker:
         data = dict(command_id=command_id, response=str(payload))
         data = json.dumps(data)
 
+        headers = {'content-type': 'application/json'}
+
         async with aiohttp.ClientSession() as session:
-            async with session.put(url=url, data=data) as resp:
+            async with session.put(url=url, data=data, headers=headers) as resp:
                 logger.info('Sending results to api.')
                 logger.info(resp.status)
                 response = await resp.json()
                 logger.info(response)
 
-    async def respond_heartbeat(self):
-        pass
+    async def send_heartbeat(self, target_queue):
+        url = self.base_url + 'heartbeats'
+
+        data = dict(target_queue=target_queue)
+        data = json.dumps(data)
+
+        headers = {'content-type': 'application/json'}
+
+        async with aiohttp.ClientSession() as session:
+            async with session.put(url=url, data=data, headers=headers) as resp:
+                logger.info('Sending heartbeat...')
+                logger.info(f'Request status: {resp.status}')
+                response = await resp.json()
+                logger.info(f'Response: {response}')
