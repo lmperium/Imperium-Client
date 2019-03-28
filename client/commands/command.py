@@ -7,6 +7,7 @@ from client.comms.HTTPWorker import HTTPWorker
 from client.modules.file import file_search
 from client.modules.process import process
 from client.modules.network import netstat
+from client.modules.windows_services import services
 
 """
 Command Format for File module:
@@ -74,17 +75,21 @@ class CommandHandler:
                 if results:
                     await http_worker.upload_results(command_id=cmd.command_id, payload=results)
             elif cmd.is_command('process'):
-                logger.info(f'Process module called with the following parameters: {cmd.parameters}')
+                logger.info(f'Process module called with the following arguments: {cmd.parameters}')
                 results = process.get_active_processes(cmd.parameters['targets'])
+                logger.info(f'Process module executed with the following results: {results}')
                 await http_worker.upload_results(command_id=cmd.command_id, payload=results)
             elif cmd.is_command('netstat'):
-                logger.info(f'Netstat module called with the following parameters: {cmd.parameters}')
+                logger.info(f'Netstat module called with the following arguments: {cmd.parameters}')
                 results = netstat.network_connections(cmd.parameters['targets'])
-                logger.info(results)
+                logger.info(f'Netstat module executed with the following results: {results}')
+                await http_worker.upload_results(command_id=cmd.command_id, payload=results)
+            elif cmd.is_command('service'):
+                logger.info(f'Service module called with the following arguments: {cmd.parameters}')
+                results = services.services(cmd.parameters)
+                logger.info(f'Service module executed with the following results: {results}')
                 await http_worker.upload_results(command_id=cmd.command_id, payload=results)
             elif cmd.is_command('registry'):
-                pass
-            elif cmd.is_command('service'):
                 pass
 
 
