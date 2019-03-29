@@ -7,7 +7,7 @@ from client.comms.HTTPWorker import HTTPWorker
 from client.modules.file import file_search
 from client.modules.process import process
 from client.modules.network import netstat
-from client.modules.windows_services import services
+from client.modules.windows import services, registry
 
 """
 Command Format for File module:
@@ -27,6 +27,16 @@ Command Format for Process list and netstat
         "parameters": {
             "qty": 10,
             "target": [list of values to search for]
+        }
+    }
+    
+Command Format for registry search/query
+    {
+        "module": "registry",
+        "parameters": {
+            "hkey":,
+            "path":,
+            "name":
         }
     }
 """
@@ -90,7 +100,10 @@ class CommandHandler:
                 logger.info(f'Service module executed with the following results: {results}')
                 await http_worker.upload_results(command_id=cmd.command_id, payload=results)
             elif cmd.is_command('registry'):
-                pass
+                logger.info(f'Registry module called with the following arguments: {cmd.parameters}')
+                results = registry.get_key(cmd.parameters['hkey'], cmd.parameters['path'], cmd.parameters['name'])
+                logger.info(f'Registry module executed with the following results: {results}')
+                await http_worker.upload_results(command_id=cmd.command_id, payload=results)
 
 
 def parse(message):
