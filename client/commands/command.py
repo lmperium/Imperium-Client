@@ -74,7 +74,7 @@ class CommandHandler:
 
         for cmd in tasks:
             if cmd.is_command('file'):
-                logger.info(cmd.parameters['path'])
+                logger.debug(cmd.parameters['path'])
                 with concurrent.futures.ThreadPoolExecutor() as pool:
                     results = await loop.run_in_executor(
                         pool,
@@ -82,28 +82,23 @@ class CommandHandler:
                         cmd.file_target, cmd.parameters
                     )
                 logger.info(results)
-                if results:
-                    await http_worker.upload_results(command_id=cmd.command_id, payload=results)
             elif cmd.is_command('process'):
-                logger.info(f'Process module called with the following arguments: {cmd.parameters}')
+                logger.debug(f'Process module called with the following arguments: {cmd.parameters}')
                 results = process.get_active_processes(cmd.parameters['targets'])
-                logger.info(f'Process module executed with the following results: {results}')
-                await http_worker.upload_results(command_id=cmd.command_id, payload=results)
+                logger.debug(f'Process module executed with the following results: {results}')
             elif cmd.is_command('netstat'):
-                logger.info(f'Netstat module called with the following arguments: {cmd.parameters}')
+                logger.debug(f'Netstat module called with the following arguments: {cmd.parameters}')
                 results = netstat.network_connections(cmd.parameters['targets'])
-                logger.info(f'Netstat module executed with the following results: {results}')
-                await http_worker.upload_results(command_id=cmd.command_id, payload=results)
+                logger.debug(f'Netstat module executed with the following results: {results}')
             elif cmd.is_command('service'):
-                logger.info(f'Service module called with the following arguments: {cmd.parameters}')
+                logger.debug(f'Service module called with the following arguments: {cmd.parameters}')
                 results = services.services(cmd.parameters)
-                logger.info(f'Service module executed with the following results: {results}')
-                await http_worker.upload_results(command_id=cmd.command_id, payload=results)
+                logger.debug(f'Service module executed with the following results: {results}')
             elif cmd.is_command('registry'):
-                logger.info(f'Registry module called with the following arguments: {cmd.parameters}')
+                logger.debug(f'Registry module called with the following arguments: {cmd.parameters}')
                 results = registry.get_key(cmd.parameters['hkey'], cmd.parameters['path'], cmd.parameters['name'])
-                logger.info(f'Registry module executed with the following results: {results}')
-                await http_worker.upload_results(command_id=cmd.command_id, payload=results)
+                logger.debug(f'Registry module executed with the following results: {results}')
+            await http_worker.upload_results(command_id=cmd.command_id, payload=results)
 
 
 def parse(message):

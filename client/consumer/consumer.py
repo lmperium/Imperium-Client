@@ -19,14 +19,18 @@ class Consumer:
     async def _on_message(message: aio_pika.IncomingMessage):
         async with message.process():
             tasks = command.parse(message.body)
-            logger.info(tasks)
+            logger.info(f'Received new job: {tasks}')
             await command.CommandHandler.run_command(tasks)
 
     async def run(self):
-        connection = await aio_pika.connect_robust(
-            self._url,
-            loop=self._loop
-        )
+        try:
+            connection = await aio_pika.connect_robust(
+                self._url,
+                loop=self._loop
+            )
+        except ConnectionError:
+            logger.error('No internet Connection')
+            return None
 
         channel = await connection.channel()
 

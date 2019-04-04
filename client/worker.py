@@ -17,7 +17,7 @@ async def main(event_loop, scheduler):
     with open(file_path, 'r') as stream:
         config = yaml.safe_load(stream)
 
-    logger.info('Loaded configuration file.')
+    logger.info('Configuration file loaded.')
 
     if not config['booted']:
         # Retrieve system information and send it to api
@@ -47,8 +47,7 @@ async def main(event_loop, scheduler):
             yaml.dump(config, stream)
             logger.info(f'Added target queue {target_queue["target_queue"]} to config file')
 
-    else:
-        logger.info('Has been booted')
+        logger.info('Worker successfully registered.')
 
     with open(file_path) as f:
         config = yaml.safe_load(f)
@@ -72,6 +71,9 @@ if __name__ == '__main__':
 
     loop = asyncio.get_event_loop()
     connection = loop.run_until_complete(main(loop, scheduler))
+
+    if not connection:
+        exit(1)
 
     try:
         loop.run_forever()
