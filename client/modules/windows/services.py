@@ -3,7 +3,7 @@ import psutil
 
 def services(parameters):
     system_services = list()
-    if parameters['targets'] == 'all':
+    if parameters['targets']:
         for service in psutil.win_service_iter():
             system_services.append(service.as_dict())
         return system_services
