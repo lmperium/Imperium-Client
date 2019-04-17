@@ -73,7 +73,7 @@ class CommandHandler:
         http_worker = HTTPWorker()
 
         for cmd in tasks:
-            if cmd.is_command('file'):
+            if cmd.is_command('file') and not cmd.parameters['content']:
                 logger.debug(cmd.parameters['path'])
                 with concurrent.futures.ThreadPoolExecutor() as pool:
                     results = await loop.run_in_executor(
@@ -82,6 +82,14 @@ class CommandHandler:
                         cmd.file_target, cmd.parameters
                     )
                 logger.info(results)
+            elif cmd.is_command('file') and cmd.parameters['content']:
+                logger.debug(f'File module called with the following arguments: {cmd.parameters}')
+                with concurrent.futures.ThreadPoolExecutor() as pool:
+                    results = await loop.run_in_executor(
+                        pool,
+                        file_search.search_content,
+                        cmd.parameters['path'], cmd.parameters['content']
+                    )
             elif cmd.is_command('process'):
                 logger.debug(f'Process module called with the following arguments: {cmd.parameters}')
                 results = process.get_active_processes(cmd.parameters['targets'])
